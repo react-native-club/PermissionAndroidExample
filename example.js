@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import {checkPermission, requestPermission} from 'react-native-android-permissions';
+import { StyleSheet, Text, View, TouchableOpacity, Platform } from 'react-native';
+import { checkPermission, requestPermission } from 'react-native-android-permissions';
 
 import {
   StackNavigator,
@@ -12,11 +12,31 @@ const BasicApp = StackNavigator({
 });
 
 export default class Example extends Component {
+
+  getPosition = () => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        if (position) {
+          console.log('POSTION', position);
+          // this.props.navigation.navigate('Profile')
+        }
+      },
+      (error) => {
+        console.log('ERROR', error);
+        if (error.code === 1) {
+          console.log('ERROR INSIDE', error);
+        }
+      },
+      {enableHighAccuracy: true }
+    )
+  }
+
   checkPerm = () => {
     requestPermission("android.permission.ACCESS_FINE_LOCATION").then((result) => {
         console.log("Granted!", result);
-        // now you can set the listenner to watch the user geo location
-        // do navigation to Profile screen for example
+        if (result.code === 'ALL_GRANTED') {
+          this.getPosition();
+        }
       }, (result) => {
         console.log("Not Granted!");
         console.log(result);
@@ -27,7 +47,7 @@ export default class Example extends Component {
     return (
       <View style={styles.container}>
         <TouchableOpacity
-          onPress={ () => this.checkPerm() }
+          onPress={ () => Platform.OS === 'android' ? this.checkPerm() : this.getPosition() }
         >
           <Text>Check Perm</Text>
       </TouchableOpacity>
